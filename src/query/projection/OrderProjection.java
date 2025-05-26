@@ -41,7 +41,8 @@ public class OrderProjection implements EventBus.EventHandler {
         CustomerOrderView order = new CustomerOrderView(
                 event.getOrderId(),
                 restaurant.getName(),
-                restaurant.getAddress()
+                restaurant.getAddress(),
+                event.getTimestamp()
         );
         repository.save(order);
     }

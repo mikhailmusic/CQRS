@@ -77,7 +77,7 @@ public class CustomerOrderQueryService {
                 order.getRestaurantName(),
                 order.getRestaurantAddress(),
                 order.getItems().stream().map(i -> new OrderItemDTO(i.getOrderItemId(), i.getDishName(), i.isPrepared())).toList(),
-                order.getStatus().getDescription()
+                order.getStatus().getDescription(), order.getCreatedAt(), order.getCompletedAt()
         );
     }
 }

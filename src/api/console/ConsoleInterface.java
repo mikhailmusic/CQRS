@@ -6,6 +6,7 @@ import query.dto.DishDTO;
 import query.dto.OrderItemDTO;
 import query.dto.RestaurantDTO;
 
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -235,6 +236,12 @@ public class ConsoleInterface{
         System.out.println("\n===== Заказ #" + order.getId() + " =====");
         System.out.printf("Ресторан: %s, %s%n", order.getRestaurantName(), order.getRestaurantAddress());
         System.out.printf("Статус: %s%n", order.getStatus());
+
+        DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
+        String created = order.getCreatedAt().format(dateFormat);
+        String completed = order.getCompletedAt() != null ? order.getCompletedAt().format(dateFormat) : "—";
+        System.out.printf("Создан: %s | Завершён: %s%n", created, completed);
+
 
         if (order.getItems().isEmpty()) {
             System.out.println("Блюда: (пусто)");
