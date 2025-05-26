@@ -4,6 +4,7 @@ import command.command.*;
 import command.handler.CommandBus;
 import query.dto.CustomerOrderDTO;
 import query.dto.DishDTO;
+import query.dto.OrderStatisticsDTO;
 import query.dto.RestaurantDTO;
 import query.service.CustomerOrderQueryService;
 
@@ -59,6 +60,10 @@ public class RestaurantFacade {
 
     public Map<DishDTO, Integer> topDishes() {
         return customerOrderQueryService.getTopDishes();
+    }
+
+    public OrderStatisticsDTO getTodayStatistics() {
+        return customerOrderQueryService.getTodayOrderStatistics();
     }
 
     public List<DishDTO> getAllDishes() {

@@ -1,9 +1,6 @@
 package query.service;
 
-import query.dto.CustomerOrderDTO;
-import query.dto.DishDTO;
-import query.dto.OrderItemDTO;
-import query.dto.RestaurantDTO;
+import query.dto.*;
 import query.model.CustomerOrderView;
 import query.model.DishView;
 import query.model.OrderStatusView;
@@ -11,6 +8,8 @@ import query.repository.CustomerOrderViewRepository;
 import query.repository.DishCatalogViewRepository;
 import query.repository.RestaurantCatalogViewRepository;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -51,6 +50,27 @@ public class CustomerOrderQueryService {
                         (a, b) -> a,
                         LinkedHashMap::new
                 ));
+    }
+
+    public OrderStatisticsDTO getTodayOrderStatistics() {
+        LocalDate today = LocalDate.now();
+        List<CustomerOrderView> allOrders = orderRepository.getAllOrders();
+
+        int total = 0;
+        int completed = 0;
+        int inProgress = 0;
+
+        for (CustomerOrderView order : allOrders) {
+            if (order.getCreatedAt().toLocalDate().equals(today)) {
+                total++;
+                switch (order.getStatus()) {
+                    case COMPLETED -> completed++;
+                    case IN_PROGRESS -> inProgress++;
+                }
+            }
+        }
+
+        return new OrderStatisticsDTO(LocalDateTime.now(), total, completed, inProgress);
     }
 
     public List<DishDTO> getAllDishes() {

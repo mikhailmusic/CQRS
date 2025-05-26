@@ -1,11 +1,9 @@
 package api.console;
 
 import api.facade.RestaurantFacade;
-import query.dto.CustomerOrderDTO;
-import query.dto.DishDTO;
-import query.dto.OrderItemDTO;
-import query.dto.RestaurantDTO;
+import query.dto.*;
 
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.function.Function;
@@ -41,9 +39,10 @@ public class ConsoleInterface{
                 case 7 -> showOrderDetails();
                 case 8 -> listOrdersByStatus();
                 case 9 -> showAllOrders();
-                case 10 -> showAllDishes();
-                case 11 -> showTopDishes();
-                case 12 -> showAllRestaurants();
+                case 10 -> showTopDishes();
+                case 11 -> showTodayStatistics();
+                case 12 -> showAllDishes();
+                case 13 -> showAllRestaurants();
                 default -> System.out.println("Неверный выбор");
             }
         } catch (Exception e) {
@@ -62,9 +61,10 @@ public class ConsoleInterface{
         System.out.println("7. Показать детали заказа");
         System.out.println("8. Показать заказы по статусу");
         System.out.println("9. Показать все заказы");
-        System.out.println("10. Показать справочник блюд");
-        System.out.println("11. Популярные блюда");
-        System.out.println("12. Показать справочник ресторанов");
+        System.out.println("10. Популярные блюда");
+        System.out.println("11. Показать статистику за сегодня");
+        System.out.println("12. Показать справочник блюд");
+        System.out.println("13. Показать справочник ресторанов");
         System.out.println("0. Выход");
         System.out.print("\nВыберите действие: ");
     }
@@ -182,6 +182,16 @@ public class ConsoleInterface{
         }
     }
 
+    private void showTodayStatistics() {
+        OrderStatisticsDTO stats = facade.getTodayStatistics();
+        System.out.printf("Статистика на %s — Всего: %d | Завершено: %d | В процессе: %d%n",
+                formatDateTime(stats.getDate()),
+                stats.getTotalOrders(),
+                stats.getCompletedOrders(),
+                stats.getInProgressOrders());
+    }
+
+
 
     private void showAllRestaurants() {
         facade.getAllRestaurants().forEach(r -> System.out.println(r.getName() + " - " + r.getAddress()));
@@ -237,9 +247,8 @@ public class ConsoleInterface{
         System.out.printf("Ресторан: %s, %s%n", order.getRestaurantName(), order.getRestaurantAddress());
         System.out.printf("Статус: %s%n", order.getStatus());
 
-        DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
-        String created = order.getCreatedAt().format(dateFormat);
-        String completed = order.getCompletedAt() != null ? order.getCompletedAt().format(dateFormat) : "—";
+        String created = formatDateTime(order.getCreatedAt());
+        String completed = order.getCompletedAt() != null ? formatDateTime(order.getCompletedAt()) : "—";
         System.out.printf("Создан: %s | Завершён: %s%n", created, completed);
 
 
@@ -256,4 +265,9 @@ public class ConsoleInterface{
             }
         }
     }
+
+    private String formatDateTime(LocalDateTime dateTime) {
+        return dateTime.format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"));
+    }
+
 }
