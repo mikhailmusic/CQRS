@@ -25,7 +25,7 @@ public class OrderItem {
         return prepared;
     }
 
-    public void updatePrepared() {
+    public void markPrepared() {
         this.prepared = true;
     }
 }

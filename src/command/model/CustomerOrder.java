@@ -2,8 +2,8 @@ package command.model;
 
 import common.event.*;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -61,7 +61,7 @@ public class CustomerOrder {
     public void markDishPrepared(String orderItemId) {
         OrderItem item = items.stream().filter(i -> i.getId().equals(orderItemId)).findFirst()
                 .orElseThrow(() -> new NoSuchElementException("Позиция заказа не найдена: " + orderItemId));
-        item.updatePrepared();
+        item.markPrepared();
         if (status == OrderStatus.PLACED) {
             this.status = OrderStatus.IN_PROGRESS;
         }
@@ -91,7 +91,7 @@ public class CustomerOrder {
     }
 
     public List<OrderItem> getItems() {
-        return items;
+        return Collections.unmodifiableList(items);
     }
 
     public OrderStatus getStatus() {

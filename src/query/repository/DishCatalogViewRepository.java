@@ -8,16 +8,16 @@ public class DishCatalogViewRepository {
     private final Map<String, DishView> dishes = new HashMap<>();
 
     public DishCatalogViewRepository() {
-        add("Classic Burger");
-        add("Cheeseburger");
-        add("Double Bacon Burger");
-        add("Spicy Chicken Sandwich");
-        add("Grilled Chicken Wrap");
-        add("Fries");
-        add("Curly Fries");
-        add("Coleslaw");
-        add("Chocolate Milkshake");
-        add("Vanilla Soda");
+        add("Классический бургер");
+        add("Чизбургер");
+        add("Бургер с двойным беконом");
+        add("Острый куриный сэндвич");
+        add("Ролл с курицей на гриле");
+        add("Картофель фри");
+        add("Картофель твистер");
+        add("Коулслоу (салат из капусты)");
+        add("Молочный коктейль с шоколадом");
+        add("Ванильная газировка");
     }
 
     private void add(String name) {

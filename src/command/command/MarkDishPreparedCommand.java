@@ -5,12 +5,12 @@ import java.util.UUID;
 public class MarkDishPreparedCommand implements Command {
     private final String commandId;
     private final String orderId;
-    private final String itemId;
+    private final String orderItemId;
 
-    public MarkDishPreparedCommand(String orderId, String itemId) {
+    public MarkDishPreparedCommand(String orderId, String orderItemId) {
         this.commandId = UUID.randomUUID().toString();
         this.orderId = orderId;
-        this.itemId = itemId;
+        this.orderItemId = orderItemId;
     }
 
     @Override
@@ -22,7 +22,7 @@ public class MarkDishPreparedCommand implements Command {
         return orderId;
     }
 
-    public String getItemId() {
-        return itemId;
+    public String getOrderItemId() {
+        return orderItemId;
     }
 }

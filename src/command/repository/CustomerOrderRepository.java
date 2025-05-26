@@ -20,10 +20,4 @@ public class CustomerOrderRepository {
     public boolean existsById(String id) {
         return orders.containsKey(id);
     }
-
-    public List<CustomerOrder> findByStatus(String status) {
-        return orders.values().stream()
-                .filter(order -> order.getStatus().name().equalsIgnoreCase(status))
-                .collect(Collectors.toList());
-    }
 }

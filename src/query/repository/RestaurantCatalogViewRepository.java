@@ -6,20 +6,16 @@ import java.util.*;
 
 public class RestaurantCatalogViewRepository {
 
-    private final Map<String, RestaurantView> restaurants;
+    private final Map<String, RestaurantView> restaurants = new HashMap<>();
 
     public RestaurantCatalogViewRepository() {
-        this.restaurants = new LinkedHashMap<>();
-        add("FastFood Central", "123 Main St");
-        add("Burger Haven", "456 Elm Ave");
-        add("Grill Station", "789 Oak Blvd");
-        add("Fry World", "321 Fryer Lane");
-        add("Chicken Stop", "654 Rooster Rd");
-        add("Wrap House", "111 Lettuce St");
-        add("Milkshake Bar", "222 Cream Ave");
-        add("Combo King", "333 Combo Blvd");
-        add("The Snack Shack", "444 Snack St");
-        add("QuickBite", "555 Speedy Dr");
+        add("Бургерная №1", "Москва, ул. Арбат, д. 12");
+        add("Куриный Дом", "Санкт-Петербург, пр-т Невский, д. 48");
+        add("Фаст&Гриль", "Казань, ул. Баумана, д. 5");
+        add("Город Бургеров", "Новосибирск, ул. Ленина, д. 19");
+        add("Чикен & Ролл", "Екатеринбург, ул. Малышева, д. 60");
+        add("Мясной Квартал", "Нижний Новгород, ул. Большая Покровская, д. 7");
+        add("Вкусная точка", "Самара, ул. Московское шоссе, д. 25");
     }
 
     private void add(String name, String address) {

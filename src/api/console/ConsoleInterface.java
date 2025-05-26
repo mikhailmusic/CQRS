@@ -3,9 +3,11 @@ package api.console;
 import api.facade.RestaurantFacade;
 import query.dto.CustomerOrderDTO;
 import query.dto.DishDTO;
+import query.dto.OrderItemDTO;
 import query.dto.RestaurantDTO;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class ConsoleInterface{
@@ -39,14 +41,14 @@ public class ConsoleInterface{
                 case 8 -> listOrdersByStatus();
                 case 9 -> showAllOrders();
                 case 10 -> showAllDishes();
-                case 11 -> showAllRestaurants();
+                case 11 -> showTopDishes();
+                case 12 -> showAllRestaurants();
                 default -> System.out.println("Неверный выбор");
             }
         } catch (Exception e) {
             System.out.println("Ошибка: " + e.getMessage());
         }
     }
-
 
     private void showMainMenu() {
         System.out.println("\n===== Ресторан - Консольное меню =====");
@@ -60,47 +62,45 @@ public class ConsoleInterface{
         System.out.println("8. Показать заказы по статусу");
         System.out.println("9. Показать все заказы");
         System.out.println("10. Показать справочник блюд");
-        System.out.println("11. Показать справочник ресторанов");
-
-        System.out.println("\n0. Выход");
-        System.out.print("Выберите действие: ");
+        System.out.println("11. Популярные блюда");
+        System.out.println("12. Показать справочник ресторанов");
+        System.out.println("0. Выход");
+        System.out.print("\nВыберите действие: ");
     }
 
     private void createOrder() {
         String orderId = UUID.randomUUID().toString();
         RestaurantDTO restaurant = selectFromList(
                 facade.getAllRestaurants(),
-                "Выберите ресторан:",
-                r -> String.format("%s (%s)", r.getName(), r.getAddress())
+                "Выберите ресторан:", r -> String.format("%s (%s)", r.getName(), r.getAddress())
         );
         List<String> dishIds = selectMultipleFromList(
                 facade.getAllDishes(),
-                "Выберите блюда:",
-                DishDTO::getName
+                "Выберите блюда:", DishDTO::getName
         ).stream().map(DishDTO::getId).collect(Collectors.toList());
 
-        facade.placeOrder(orderId, restaurant.getId(), dishIds);
+        facade.takeOrder(orderId, restaurant.getId(), dishIds);
         System.out.println("Заказ создан.");
     }
 
     private void addDishToOrder() {
-        String orderId = selectOrder();
+        String orderId = selectOrder().getId();
         DishDTO dish = selectFromList(facade.getAllDishes(), "Выберите блюдо:", DishDTO::getName);
-        facade.addDishToOrder(orderId, dish.getId());
+        facade.addDish(orderId, dish.getId());
         System.out.println("Блюдо добавлено в заказ.");
     }
 
     private void removeDishFromOrder() {
-        CustomerOrderDTO order = selectOrderView();
-        var item = selectFromList(order.getItems(), "Выберите блюдо для удаления:",
+        CustomerOrderDTO order = selectOrder();
+        OrderItemDTO item = selectFromList(order.getItems(), "Выберите блюдо для удаления:",
                 i -> String.format("%s [%s]", i.getDishName(), i.isPrepared() ? "готово" : "ожидает"));
         facade.removeDish(order.getId(), item.getOrderItemId());
         System.out.println("Блюдо удалено из заказа.");
     }
 
     private void replaceDishInOrder() {
-        CustomerOrderDTO order = selectOrderView();
-        var item = selectFromList(order.getItems(), "Выберите блюдо для замены:",
+        CustomerOrderDTO order = selectOrder();
+        OrderItemDTO item = selectFromList(order.getItems(), "Выберите блюдо для замены:",
                 i -> String.format("%s [%s]", i.getDishName(), i.isPrepared() ? "готово" : "ожидает"));
         DishDTO newDish = selectFromList(facade.getAllDishes(), "Выберите новое блюдо:", DishDTO::getName);
         facade.changeDish(order.getId(), item.getOrderItemId(), newDish.getId());
@@ -108,15 +108,19 @@ public class ConsoleInterface{
     }
 
     private void prepareDish() {
-        CustomerOrderDTO order = selectOrderView();
-        var item = selectFromList(order.getItems(), "Выберите блюдо для приготовления:",
+        CustomerOrderDTO order = selectOrder();
+        OrderItemDTO item = selectFromList(order.getItems(), "Выберите блюдо для приготовления:",
                 i -> String.format("%s [%s]", i.getDishName(), i.isPrepared() ? "готово" : "ожидает"));
+
+        System.out.print("===== ДО ПРИГОТОВЛЕНИЯ =====");
+        printOrder(order);
+
         facade.prepareDish(order.getId(), item.getOrderItemId());
         System.out.println("Блюдо приготовлено.");
     }
 
     private void completeOrder() {
-        String orderId = selectOrder();
+        String orderId = selectOrder().getId();
         facade.completeOrder(orderId);
         System.out.println("Заказ завершён.");
     }
@@ -128,29 +132,10 @@ public class ConsoleInterface{
             return;
         }
         CustomerOrderDTO order = selectFromList(
-                orders,
-                "Выберите заказ для просмотра деталей:",
+                orders, "Выберите заказ для просмотра деталей:",
                 o -> String.format("%s (%s) - %s", o.getRestaurantName(), o.getRestaurantAddress(), o.getStatus())
         );
-
-        System.out.println("\n=== Детали заказа ===");
-        System.out.printf("ID: %s%n", order.getId());
-        System.out.printf("Ресторан: %s%n", order.getRestaurantName());
-        System.out.printf("Адрес: %s%n", order.getRestaurantAddress());
-        System.out.printf("Статус: %s%n", order.getStatus());
-
-        if (order.getItems().isEmpty()) {
-            System.out.println("Блюда: (пусто)");
-        } else {
-            System.out.println("Блюда:");
-            for (var item : order.getItems()) {
-                System.out.printf("  - %s [%s] (ID: %s)%n",
-                        item.getDishName(),
-                        item.isPrepared() ? "готово" : "ожидает",
-                        item.getOrderItemId()
-                );
-            }
-        }
+        printOrder(order);
     }
 
 
@@ -180,19 +165,29 @@ public class ConsoleInterface{
         facade.getAllDishes().forEach(d -> System.out.println(d.getName()));
     }
 
+    private void showTopDishes() {
+        Map<DishDTO, Integer> topDishes = facade.topDishes();
+        if (topDishes.isEmpty()) {
+            System.out.println("Нет данных по популярным блюдам.");
+            return;
+        }
+
+        System.out.println("Топ популярных блюд:");
+        int rank = 1;
+        for (Map.Entry<DishDTO, Integer> entry : topDishes.entrySet()) {
+            DishDTO dish = entry.getKey();
+            Integer count = entry.getValue();
+            System.out.printf("%d. %s — заказов: %d%n", rank++, dish.getName(), count);
+        }
+    }
+
+
     private void showAllRestaurants() {
         facade.getAllRestaurants().forEach(r -> System.out.println(r.getName() + " - " + r.getAddress()));
     }
 
-    private String selectOrder() {
-        return selectFromList(
-                facade.getAllOrders(),
-                "Выберите заказ:",
-                o -> String.format("%s (%s) - %s", o.getRestaurantName(), o.getRestaurantAddress(), o.getStatus())
-        ).getId();
-    }
 
-    private CustomerOrderDTO selectOrderView() {
+    private CustomerOrderDTO selectOrder() {
         return selectFromList(
                 facade.getAllOrders(),
                 "Выберите заказ:",
@@ -200,7 +195,7 @@ public class ConsoleInterface{
         );
     }
 
-    private <T> T selectFromList(List<T> list, String prompt, java.util.function.Function<T, String> labeler) {
+    private <T> T selectFromList(List<T> list, String prompt, Function<T, String> labeler) {
         if (list.isEmpty()) throw new IllegalStateException("Список пуст");
         System.out.println(prompt);
         for (int i = 0; i < list.size(); i++) {
@@ -211,12 +206,12 @@ public class ConsoleInterface{
         return list.get(index);
     }
 
-    private List<DishDTO> selectMultipleFromList(List<DishDTO> list, String prompt, java.util.function.Function<DishDTO, String> labeler) {
+    private List<DishDTO> selectMultipleFromList(List<DishDTO> list, String prompt, Function<DishDTO, String> labeler) {
         System.out.println(prompt);
         for (int i = 0; i < list.size(); i++) {
             System.out.printf("%d. %s%n", i + 1, labeler.apply(list.get(i)));
         }
-        System.out.println("Введите номера через запятую (например: 1, 3, 4): ");
+        System.out.print("Введите номера через запятую (например: 1, 3, 4): ");
         String input = scanner.nextLine();
         return Arrays.stream(input.split(", "))
                 .map(String::trim)
@@ -237,18 +232,19 @@ public class ConsoleInterface{
     }
 
     private void printOrder(CustomerOrderDTO order) {
-        System.out.printf("Заказ [%s, %s] - %s%n",
-                order.getRestaurantName(),
-                order.getRestaurantAddress(),
-                order.getStatus()
-        );
+        System.out.println("\n===== Заказ #" + order.getId() + " =====");
+        System.out.printf("Ресторан: %s, %s%n", order.getRestaurantName(), order.getRestaurantAddress());
+        System.out.printf("Статус: %s%n", order.getStatus());
+
         if (order.getItems().isEmpty()) {
-            System.out.println("  (пустой заказ)");
+            System.out.println("Блюда: (пусто)");
         } else {
-            for (var item : order.getItems()) {
-                System.out.printf("  - %s [%s]%n",
+            System.out.println("Блюда:");
+            for (OrderItemDTO item : order.getItems()) {
+                System.out.printf("  - %s [%s] (ID: %s)%n",
                         item.getDishName(),
-                        item.isPrepared() ? "готово" : "ожидает"
+                        item.isPrepared() ? "готово" : "ожидает",
+                        item.getOrderItemId()
                 );
             }
         }

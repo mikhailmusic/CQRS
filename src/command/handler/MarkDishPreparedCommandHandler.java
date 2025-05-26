@@ -14,20 +14,7 @@ public class MarkDishPreparedCommandHandler implements CommandHandler<MarkDishPr
     @Override
     public void handle(MarkDishPreparedCommand command) {
         CustomerOrder order = repository.findById(command.getOrderId());
-
-        System.out.println("=== ДО ПРИГОТОВЛЕНИЯ ===");
-        System.out.printf("Order ID: %s%n", order.getId());
-        System.out.printf("Restaurant: %s", order.getRestaurantId());
-        System.out.printf("Status: %s%n", order.getStatus());
-        System.out.println("Items:");
-        for (var item : order.getItems()) {
-            System.out.printf(" - %s | %s [%s]%n",
-                    item.getId(),
-                    item.getDishId(),
-                    item.isPrepared() ? "готово" : "ожидает"
-            );
-        }
-        order.markDishPrepared(command.getItemId());
+        order.markDishPrepared(command.getOrderItemId());
         repository.save(order);
     }
 }

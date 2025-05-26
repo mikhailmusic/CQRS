@@ -51,37 +51,42 @@ public class OrderProjection implements EventBus.EventHandler {
                 .orElseThrow(() -> new NoSuchElementException("Блюдо не найдено: " + event.getDishId()));
 
         CustomerOrderView order = repository.findByOrderId(event.getOrderId());
-        order.addItem(new OrderItemView(event.getOrderItemId(), dish.getName()));
+        order.addItem(new OrderItemView(event.getOrderItemId(), dish.getId(), dish.getName()));
         repository.save(order);
     }
 
     private void onDishRemoved(DishRemovedFromOrderEvent event) {
         CustomerOrderView order = repository.findByOrderId(event.getOrderId());
-        order.getItems().removeIf(item -> item.getOrderItemId().equals(event.getOrderItemId()));
+        order.removeItem(event.getOrderItemId());
         repository.save(order);
     }
 
     private void onDishChanged(DishChangedInOrderEvent event) {
         DishView dish = dishCatalog.findById(event.getNewDishId())
                 .orElseThrow(() -> new NoSuchElementException("Блюдо не найдено: " + event.getNewDishId()));
-
         CustomerOrderView order = repository.findByOrderId(event.getOrderId());
-        order.getItems().stream()
-                .filter(item -> item.getOrderItemId().equals(event.getOrderItemId())).findFirst()
-                .ifPresent(item -> {
-                    order.getItems().remove(item);
-                    order.addItem(new OrderItemView(event.getOrderItemNewId(), dish.getName()));
-                });
+
+        OrderItemView existingItem = order.getItems().stream()
+                .filter(item -> item.getOrderItemId().equals(event.getOrderItemId()))
+                .findFirst().orElse(null);
+
+        if (existingItem != null) {
+            order.removeItem(existingItem);
+            order.addItem(new OrderItemView(event.getOrderItemNewId(), dish.getId(), dish.getName()));
+        }
         repository.save(order);
     }
 
     private void onDishPrepared(DishPreparedEvent event) {
         CustomerOrderView order = repository.findByOrderId(event.getOrderId());
 
-        order.getItems().stream()
-                .filter(item -> item.getOrderItemId().equals(event.getOrderItemId()))
-                .findFirst()
-                .ifPresent(OrderItemView::markPrepared);
+        List<OrderItemView> items = order.getItems();
+        for (OrderItemView item : items) {
+            if (item.getOrderItemId().equals(event.getOrderItemId())) {
+                item.markPrepared();
+                break;
+            }
+        }
 
         if (order.getStatus() == OrderStatusView.PLACED) {
             order.updateStatus(OrderStatusView.IN_PROGRESS);

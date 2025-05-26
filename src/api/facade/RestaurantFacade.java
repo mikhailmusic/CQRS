@@ -8,6 +8,7 @@ import query.dto.RestaurantDTO;
 import query.service.CustomerOrderQueryService;
 
 import java.util.List;
+import java.util.Map;
 
 public class RestaurantFacade {
     private final CommandBus commandBus;
@@ -19,16 +20,19 @@ public class RestaurantFacade {
     }
 
     // Команды (запись)
-    public void placeOrder(String orderId, String restaurantId, List<String> dishIds) {
+    public void takeOrder(String orderId, String restaurantId, List<String> dishIds) {
         commandBus.dispatch(new TakeCustomerOrderCommand(orderId, restaurantId, dishIds));
     }
 
-    public void addDishToOrder(String orderId, String dishId) {
+    public void addDish(String orderId, String dishId) {
         commandBus.dispatch(new AddDishToOrderCommand(orderId, dishId));
     }
 
     public void removeDish(String orderId, String dishId) {
         commandBus.dispatch(new RemoveDishFromOrderCommand(orderId, dishId));
+    }
+    public void changeDish(String orderId, String orderItemId, String newDishId) {
+        commandBus.dispatch(new ChangeDishInOrderCommand(orderId, orderItemId, newDishId));
     }
 
     public void prepareDish(String orderId, String orderItemId) {
@@ -39,9 +43,6 @@ public class RestaurantFacade {
         commandBus.dispatch(new CompleteCustomerOrderCommand(orderId));
     }
 
-    public void changeDish(String orderId, String orderItemId, String newDishId) {
-        commandBus.dispatch(new ChangeDishInOrderCommand(orderId, orderItemId, newDishId));
-    }
 
     // Запросы (чтение)
     public CustomerOrderDTO getOrder(String orderId) {
@@ -54,6 +55,10 @@ public class RestaurantFacade {
 
     public List<CustomerOrderDTO> getAllOrders() {
         return customerOrderQueryService.getAllOrders();
+    }
+
+    public Map<DishDTO, Integer> topDishes() {
+        return customerOrderQueryService.getTopDishes();
     }
 
     public List<DishDTO> getAllDishes() {

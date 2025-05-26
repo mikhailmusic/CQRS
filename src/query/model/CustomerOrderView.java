@@ -1,7 +1,7 @@
 package query.model;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class CustomerOrderView {
@@ -10,7 +10,6 @@ public class CustomerOrderView {
     private final String restaurantAddress;
     private final List<OrderItemView> items;
     private OrderStatusView status;
-    private LocalDateTime createdAt;
 
     public CustomerOrderView(String orderId, String restaurantName, String restaurantAddress) {
         this.orderId = orderId;
@@ -18,7 +17,6 @@ public class CustomerOrderView {
         this.restaurantAddress = restaurantAddress;
         this.items = new ArrayList<>();
         this.status = OrderStatusView.PLACED;
-        this.createdAt = LocalDateTime.now();
     }
 
     public String getOrderId() {
@@ -34,15 +32,11 @@ public class CustomerOrderView {
     }
 
     public List<OrderItemView> getItems() {
-        return items;
+        return Collections.unmodifiableList(items);
     }
 
     public OrderStatusView getStatus() {
         return status;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
     }
 
     public void updateStatus(OrderStatusView status) {
@@ -50,7 +44,14 @@ public class CustomerOrderView {
     }
 
     public void addItem(OrderItemView item) {
-        this.items.add(item);
+        items.add(item);
+    }
+
+    public void removeItem(String itemId) {
+        items.removeIf(item -> item.getOrderItemId().equals(itemId));
+    }
+    public void removeItem(OrderItemView item) {
+        items.remove(item);
     }
 
 }
